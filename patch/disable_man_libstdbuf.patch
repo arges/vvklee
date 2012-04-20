@@ -1,0 +1,42 @@
+diff -aur coreutils-8.16.orig/configure.ac coreutils-8.16/configure.ac
+--- coreutils-8.16.orig/configure.ac	2012-04-19 20:11:55.064828679 -0500
++++ coreutils-8.16/configure.ac	2012-04-19 23:54:19.899846876 -0500
+@@ -452,10 +452,10 @@
+ 
+ # Now that we know which programs will actually be built up, figure out
+ # which optional helper progs should be compiled.
+-optional_pkglib_progs=
+-case " $optional_bin_progs " in
+-  *' stdbuf '*) gl_ADD_PROG([optional_pkglib_progs], [libstdbuf.so]) ;;
+-esac
++#optional_pkglib_progs=
++#case " $optional_bin_progs " in
++#  *' stdbuf '*) gl_ADD_PROG([optional_pkglib_progs], [libstdbuf.so]) ;;
++#esac
+ 
+ # Set INSTALL_SU if su installation has been requested via
+ # --enable-install-program=su.
+diff -aur coreutils-8.16.orig/Makefile.am coreutils-8.16/Makefile.am
+--- coreutils-8.16.orig/Makefile.am	2012-04-19 20:11:54.947832246 -0500
++++ coreutils-8.16/Makefile.am	2012-04-19 23:54:18.895836233 -0500
+@@ -17,7 +17,7 @@
+ 
+ ALL_RECURSIVE_TARGETS =
+ 
+-SUBDIRS = lib src doc man po tests gnulib-tests
++SUBDIRS = lib src doc po tests gnulib-tests
+ 
+ changelog_etc =				\
+   ChangeLog-2005			\
+diff -aur coreutils-8.16.orig/Makefile.in coreutils-8.16/Makefile.in
+--- coreutils-8.16.orig/Makefile.in	2012-04-19 20:11:54.960830062 -0500
++++ coreutils-8.16/Makefile.in	2012-04-19 23:54:19.171856862 -0500
+@@ -1639,7 +1639,7 @@
+ 
+ # Some tests always need root privileges, others need them only sometimes.
+ ALL_RECURSIVE_TARGETS = install-root check-root distcheck-hook
+-SUBDIRS = lib src doc man po tests gnulib-tests
++SUBDIRS = lib src doc po tests gnulib-tests
+ changelog_etc = \
+   ChangeLog-2005			\
+   ChangeLog-2006			\
