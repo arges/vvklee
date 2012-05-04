@@ -1,7 +1,6 @@
 #!/bin/bash
 #
 # Script to run coreutils tests and output proper data.
-# Must have working environment first, and klee* in path.
 #
 # (C)2012 by Chris J Arges <christopherarges@gmail.com>
 #
@@ -14,6 +13,9 @@ GCOV_DIR=${TARGET_DIR}/obj-gcov
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 RESULT_DIR=${CWD}/results/$TIMESTAMP
 
+# program names to skip
+SKIP="(expr|nohup|yes|setuidgid|stty)"
+
 function cleanup() {
 	# Remove any gcov generated files.
 	cd $GCOV_DIR/src
@@ -24,16 +26,17 @@ function cleanup() {
 	rm -rf klee-*
 }
 
-# run_test <binary_name> <sym args> <sym files>
+# run_test <binary_name> <arguments> <test #>
 function run_test() {
 	BINARY=$1
 	ARGS=$2
+	TESTNO=$3
 
-	cleanup
+	# setup the test
 	echo ">>> testing $BINARY : $ARGS"
+	cleanup
 	START=$(date +%s)
-
-	TEST_DIR=${RESULT_DIR}/${BINARY}/
+	TEST_DIR=${RESULT_DIR}/${BINARY}/${TESTNO}/
 	mkdir -p ${TEST_DIR}
 
 	# run klee coverage
@@ -52,18 +55,31 @@ function run_test() {
 	# keep track of time
 	END=$(date +%s)
 	DIFF=$(( $END - $START ))
-	echo "	execution time: $DIFF s"
+	echo "	execution time: $DIFF s" | tee ${TEST_DIR}/time.log
+
+	# show interesting stuff on the screen
 	egrep "(executed|File)" ${TEST_DIR}/gcov.log | cut -f 2 -d ':'
 	echo ""
+}
+
+# add klee to the path
+add_to_path() {
+	KLEE_BIN="$(pwd)/build/klee/Release+Asserts/bin/"
+	if [ -d "${KLEE_BIN}" ] && [[ ":$PATH:" != *":${KLEE_BIN}:"* ]]; then
+		PATH="$PATH:${KLEE_BIN}"
+	fi
 }
 
 function run_tests() {
 	echo ${RESULT_DIR}
 	mkdir -p ${RESULT_DIR}
+	add_to_path	
 
-	# run selected tests
+	# run tests
 	cd $LLVM_DIR/src
-	run_test echo "--sym-args 0 2 4"
+	for i in $(ls *.bc | egrep -v $SKIP); do
+		run_test ${i%.bc} "--sym-args 0 1 1 --sym-files 1 1 --max-time=1" 0
+	done
 }
 
 while getopts "t?" opt; do
