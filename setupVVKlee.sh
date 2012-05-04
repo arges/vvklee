@@ -17,10 +17,9 @@ KLEE_UCLIBC_FILE="klee-uclibc-0.02-i386.tgz"
 
 function download() {
 	echo "Downloading and installing required files."
-	apt-get install build-essential subversion gcov
-	apt-get install kcachegrind
-	apt-get build-dep llvm
-	apt-get install llvm-gcc-4.2
+	sudo apt-get install --force-yes build-essential \
+		subversion gcov kcachegrind llvm-gcc-4.2
+	sudo apt-get build-dep --force-yes llvm
 
 	# Download files
 	mkdir build
