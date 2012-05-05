@@ -5,7 +5,7 @@
 # (C)2012 by Chris J Arges <christopherarges@gmail.com>
 #
 
-# Right now this has only been tested on 32-bit Lucid.
+# This has been tested on both 32 and 64 bit Lucid. 
 # Versions of llvm-gcc > gcc4.2/llvm-2.8 don't have the --emit-llvm option.
 
 MAKEOPTS="-j8"
@@ -13,7 +13,18 @@ CWD=$(pwd)
 
 KLEE_DIR="${CWD}/build/klee"
 KLEE_PATH="${CWD}/build/klee/scripts/klee-gcc"
-KLEE_UCLIBC_FILE="klee-uclibc-0.02-i386.tgz"
+
+IS_64_BIT="`file /sbin/init | grep 64-bit`"
+
+if [ -n "$IS_64_BIT" ]; then
+   UCLIBC_PLATFORM="x64"
+   echo "Using 64 bit platform"
+else
+   UCLIBC_PLATFORM="i386"
+   echo "Using 32 bit platform"
+fi
+
+KLEE_UCLIBC_FILE="klee-uclibc-0.02-${UCLIBC_PLATFORM}.tgz"
 
 function download() {
 	echo "Downloading and installing required files."
@@ -49,7 +60,7 @@ function build() {
 	cd ..
 
 	# build klee-uclibc
-	cd klee-uclibc-0.02-i386
+	cd klee-uclibc-0.02-${UCLIBC_PLATFORM}
 	./configure --with-llvm=${LLVM_PATH}
 	make ${MAKEOPTS} || fail "make klee-uclibc failed!"
 	UCLIBC_PATH=$(pwd)
