@@ -14,7 +14,7 @@ TIMESTAMP=$(date +%Y%m%d%H%M%S)
 RESULT_DIR=${CWD}/results/$TIMESTAMP
 
 # program names to skip
-SKIP="(expr|nohup|yes|setuidgid|stty)"
+SKIP="(expr|nohup|yes|setuidgid|stty|cp|ginstall|mv|runcon|shred|sort|tail|timeout)"
 
 function cleanup() {
 	# Remove any gcov generated files.
@@ -78,7 +78,7 @@ function run_tests() {
 	# run tests
 	cd $LLVM_DIR/src
 	for i in $(ls *.bc | egrep -v $SKIP); do
-		run_test ${i%.bc} "--sym-args 0 1 1 --sym-files 1 1 --max-time=1" 0
+		run_test ${i%.bc} "--sym-args 10 2 2 --sym-files 2 8 --max-time=60" 0
 	done
 }
 
