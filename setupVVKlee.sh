@@ -15,54 +15,75 @@ KLEE_DIR="${CWD}/build/klee"
 KLEE_PATH="${CWD}/build/klee/scripts/klee-gcc"
 KLEE_UCLIBC_FILE="klee-uclibc-0.02-i386.tgz"
 
+CDE_BUILD=
+KLEE_CDE_PACKAGE="http://keeda.stanford.edu/~pgbovine/klee-cde-package.v2.tar.bz2"
+KLEE_POSTFIX=""
+
 function download() {
 	echo "Downloading and installing required files."
-	sudo apt-get install --force-yes build-essential \
-		subversion gcov kcachegrind llvm-gcc-4.2
-	sudo apt-get build-dep --force-yes llvm
+	sudo apt-get install --force-yes build-essential wget autoconf automake
 
-	# Download files
-	mkdir build
-	cd build
+	# If custom build download/extact all files.
+	if [ ! -n "$CDE_BUILD" ]; then
+		mkdir build
+		cd build
 
-	# llvm-2.8
-	wget http://llvm.org/releases/2.8/llvm-2.8.tgz
-	tar -xf llvm-2.8.tgz
-	# uclibc-0.02 klee
-	wget http://www.doc.ic.ac.uk/~cristic/klee/${KLEE_UCLIBC_FILE}
-	tar -xf ${KLEE_UCLIBC_FILE}
-	# klee from svn
-	svn co http://llvm.org/svn/llvm-project/klee/trunk klee
-	cd ..
+		# get dependencies
+		sudo apt-get install --force-yes subversion \
+			kcachegrind llvm-gcc-4.2
+		sudo apt-get build-dep --force-yes llvm
+	
+		# llvm-2.8
+		wget http://llvm.org/releases/2.8/llvm-2.8.tgz
+		tar -xf llvm-2.8.tgz
+		# uclibc-0.02 klee
+		wget http://www.doc.ic.ac.uk/~cristic/klee/${KLEE_UCLIBC_FILE}
+		tar -xf ${KLEE_UCLIBC_FILE}
+		# klee from svn
+		svn co http://llvm.org/svn/llvm-project/klee/trunk klee
+
+		cd ..
+	else	
+		# download CDE package (if selected)
+		if [ ! -e klee-cde-package.v2.tar.bz2 ]; then
+			 wget ${KLEE_CDE_PACKAGE}
+		fi
+		if [ ! -d klee-cde-package ]; then
+			tar -xf klee-cde-package.v2.tar.bz2
+		fi
+	fi
 }
 
 function build() {
-	echo "Building projects"
-
-	cd build
-
-	# build llvm
-	cd llvm-2.8
-	LLVM_PATH=$(pwd)
-	./configure --enable-optimized --enable-assertions
-	make ${MAKEOPTS} || fail "make llvm failed!"
-	cd ..
-
-	# build klee-uclibc
-	cd klee-uclibc-0.02-i386
-	./configure --with-llvm=${LLVM_PATH}
-	make ${MAKEOPTS} || fail "make klee-uclibc failed!"
-	UCLIBC_PATH=$(pwd)
-	cd ..
-
-	# build klee
-	cd klee
-	./configure --with-llvm=${LLVM_PATH} --with-uclibc=${UCLIBC_PATH} --enable-posix-runtime
-	make ENABLED_OPTIMIZED=1 ${MAKEOPTS} || fail "make klee failed!"
-	make check
-	make unittests
-	cd ../..
-
+	if [ ! -n "$CDE_BUILD" ]; then
+		echo "Building projects"
+	
+		cd build
+	
+		# build llvm
+		cd llvm-2.8
+		LLVM_PATH=$(pwd)
+		./configure --enable-optimized --enable-assertions
+		make ${MAKEOPTS} || fail "make llvm failed!"
+		cd ..
+	
+		# build klee-uclibc
+		cd klee-uclibc-0.02-i386
+		./configure --with-llvm=${LLVM_PATH}
+		make ${MAKEOPTS} || fail "make klee-uclibc failed!"
+		UCLIBC_PATH=$(pwd)
+		cd ..
+	
+		# build klee
+		cd klee
+		./configure --with-llvm=${LLVM_PATH} --with-uclibc=${UCLIBC_PATH} --enable-posix-runtime
+		make ENABLED_OPTIMIZED=1 ${MAKEOPTS} || fail "make klee failed!"
+		make check
+		make unittests
+		cd ../..
+	else
+		echo "Don't need to build anything for CDE"
+	fi
 	win
 }
 
@@ -97,7 +118,7 @@ function example() {
 	make CC=${KLEE_PATH} CPPFLAGS="-std=gnu99" ${MAKEOPTS} || fail "Couldn't build obj-llvm coreutils!"
 
 	# test it
-	${KLEE_DIR}/Release+Asserts/bin/klee --libc=uclibc --posix-runtime src/cat.bc --version || fail "Couldn't run basic klee test!"
+	#${KLEE_DIR}/Release+Asserts/bin/klee --libc=uclibc --posix-runtime src/cat.bc --version || fail "Couldn't run basic klee test!"
 
 	cd ../..
 	win
@@ -123,8 +144,14 @@ function win() {
 echo "Huzzah! It works! :)"
 }
 
-while getopts "dbhe?" opt; do
+while getopts "cdbhe?" opt; do
 	case $opt in
+	c)
+		CDE_BUILD="yes"
+		KLEE_POSTFIX=".cde"
+		KLEE_PATH="$(pwd)/klee-cde-package/bin"
+		KLEE_PATH="${CWD}/klee-cde-package/cde-root/home/pgbovine/klee/scripts/klee-gcc"
+		;;
 	d)	download ;;
 	b)	build ;;
 	e)	example ;;
