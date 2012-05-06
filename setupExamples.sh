@@ -4,19 +4,19 @@ function build_examples()
 {
   cd examples
  
-  mkdir llvm-obj
-  mkdir gcov-obj
+  mkdir obj-llvm
+  mkdir obj-gcov
 
   cd src 
 
   for i in $(ls *.c); do
     #make the gcov binary
-    gcc -c ${i} -g -o ../gcov-obj/${i%.c}.o -fprofile-arcs -ftest-coverage
+    gcc ${i} -g -o ../obj-gcov/${i%.c} -fprofile-arcs -ftest-coverage
   done
 
   for i in $(ls *.c); do
     #make the gcov binary
-    llvm-gcc -emit-llvm -c ${i} -g -o ../llvm-obj/${i%.c}.o
+    llvm-gcc -emit-llvm -c ${i} -g -o ../obj-llvm/${i%.c}.o
   done
 }
 
