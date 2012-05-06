@@ -28,7 +28,7 @@ KLEE_ARGS="--simplify-sym-indices --max-memory=12288 --use-cex-cache \
 	--disable-inlining --allow-external-sym-calls --watchdog \
 	--max-memory-inhibit=false --only-output-states-covering-new \
 	--optimize --use-forked-stp --libc=uclibc \
-	--max-time=1800 --posix-runtime"
+	--max-time=60 --posix-runtime"
 function cleanup() {
 	# Remove any gcov generated files.
 	cd $GCOV_DIR/src
