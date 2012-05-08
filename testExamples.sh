@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash  
 #
 # Script to run coreutils tests and output proper data.
 #
@@ -9,6 +9,7 @@ CWD=$(pwd)
 EXAMPLES_DIR=${CWD}/examples
 EXAMPLES_LLVM_DIR=${EXAMPLES_DIR}/obj-llvm
 EXAMPLES_GCOV_DIR=${EXAMPLES_DIR}/obj-gcov
+
 
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 RESULT_DIR=${CWD}/results/$TIMESTAMP
@@ -53,8 +54,10 @@ function run_example() {
 
 	# calculate coverage of test
         cd $EXAMPLES_GCOV_DIR
-	klee-replay ./${BINARY} ${TEST_DIR}/klee-last/*.ktest &>> \
+        for i in  $(ls ${TEST_DIR}/klee-last/*.ktest); do
+            KTEST_FILE=${i} ./${BINARY} &>> \
 		${TEST_DIR}/klee-replay.log
+        done
 
         #since I do not use a makefile, the coverage files
         #are put int the source directory, so navigate there 
@@ -78,6 +81,8 @@ add_to_path() {
 	if [ -d "${KLEE_BIN}" ] && [[ ":$PATH:" != *":${KLEE_BIN}:"* ]]; then
 		PATH="$PATH:${KLEE_BIN}"
 	fi
+
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CWD}/build/klee/Release+Asserts/lib
 }
 
 function run_examples() {
@@ -88,7 +93,7 @@ function run_examples() {
 	# run tests
 	cd ${EXAMPLES_LLVM_DIR}
 	for i in $(ls *.o ); do
-		run_example ${i%.o} "--sym-arg 2 " 0
+		run_example ${i%.o} "--sym-args 0 2 4" 0
 	done
 }
 
