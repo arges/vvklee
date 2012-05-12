@@ -62,7 +62,8 @@ function run_example() {
         #since I do not use a makefile, the coverage files
         #are put int the source directory, so navigate there 
         #to run gcov
-        mv ../src/*.gcov ../src/*.gcda ../src/*.gcno .
+        #mv ../src/*.gcov ../src/*.gcda ../src/*.gcno .
+        mv ../src/*.g* .
 	gcov ./${BINARY} &>> ${TEST_DIR}/gcov.log
 
 	# keep track of time
